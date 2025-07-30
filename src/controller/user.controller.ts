@@ -1,9 +1,11 @@
-import { Controller, Post, Body, Inject } from '@midwayjs/core';
+import { Controller, Post, Get, Param, Body, Inject } from '@midwayjs/core';
 import { Validate } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 import { UserService } from '../service/user.service';
 import { RegisterDTO, LoginDTO } from '../dto/user.dto';
 import { compareSync } from 'bcryptjs';
+import { createReadStream, existsSync } from 'fs';
+import { join, extname } from 'path';
 
 @Controller('/user')
 export class UserController {
@@ -42,7 +44,6 @@ export class UserController {
       message: '注册成功',
       data: {
         id: user.id,
-        username: user.username,
       }
     };
   }
@@ -73,9 +74,39 @@ export class UserController {
       data: {
         id: user.id,
         username: user.username,
-        avatar: user.avatar,
         token
       }
     };
+  } 
+
+  @Get('/avatar/:id')
+  async avatar(@Param('id') id: number) {
+    const user = await this.userService.getUserById(id);
+    const filePath = join(__dirname, `../../public/avatar/${user.avatar}`);
+    // 检查文件是否存在
+    if (!existsSync(filePath)) {
+      this.ctx.status = 404;
+      return { code: 404, message: '头像文件不存在' };
+    }
+    // 根据文件扩展名设置 Content-Type
+    const ext = extname(user.avatar);
+    switch (ext.toLowerCase()) {
+      case '.jpg':
+      case '.jpeg':
+        this.ctx.type = 'image/jpeg';
+        break;
+      case '.png':
+        this.ctx.type = 'image/png';
+        break;
+      case '.gif':
+        this.ctx.type = 'image/gif';
+        break;
+      default:
+        this.ctx.type = 'application/octet-stream';
+    }
+    this.ctx.set('Cache-Control', 'public, max-age=31536000'); // 缓存1年
+    
+    // 返回文件流
+    this.ctx.body = createReadStream(filePath);
   }
 }
