@@ -7,7 +7,7 @@ export class RegisterDTO {
   @Rule(RuleType.string().required().min(8).error(new Error('密码长度不能少于8位')))
   password: string;
 
-  @Rule(RuleType.string().required().min(8).error(new Error('确认密码长度不能少于8位')))
+  @Rule(RuleType.string().required())
   confirmPassword: string;
 }
 

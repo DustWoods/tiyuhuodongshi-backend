@@ -4,7 +4,7 @@ import { Context } from '@midwayjs/koa';
 import { UserService } from '../service/user.service';
 import { RegisterDTO, LoginDTO, UpdateUserDTO } from '../dto/user.dto';
 import { compareSync } from 'bcryptjs';
-import { createReadStream, existsSync, unlinkSync, writeFileSync } from 'fs';
+import { createReadStream, existsSync, writeFileSync } from 'fs';
 import { join, extname } from 'path';
 
 @Controller('/user')
@@ -145,13 +145,7 @@ export class UserController {
       writeFileSync(savePath, binaryData);
 
       // 删除旧头像（如果有）
-      const user = await this.userService.getUserById(userId);
-      if (user.avatar !== 'base.jpg') {
-        const oldAvatarPath = join(uploadDir, user.avatar);
-        if (existsSync(oldAvatarPath)) {
-          unlinkSync(oldAvatarPath);
-        }
-      }
+      await this.userService.deleteOldAvatar(userId);
       // 更新头像URL（存储文件名而非完整路径）
       updateData.avatar = fileName;
     }
@@ -168,10 +162,15 @@ export class UserController {
 
   @Get('/logout/:id')
   async logout(@Param('id') id: number){
+    await this.userService.deleteOldAvatar(id);
     const result = await this.userService.deleteUser(id);
     if (result.affected === 0) {
       return { code: 404, message: '用户不存在' };
     }
+    this.ctx.cookies.set('token', null, {
+      httpOnly: true,
+      maxAge: 0,
+    });
     return {code: 200, message: '用户已注销并删除'}
   }
 }

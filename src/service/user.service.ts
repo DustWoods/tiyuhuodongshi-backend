@@ -5,6 +5,8 @@ import { InjectEntityModel } from '@midwayjs/typeorm';
 import { hashSync, genSaltSync } from 'bcryptjs';
 import { sign } from 'jsonwebtoken';
 import { Context } from '@midwayjs/koa';
+import { existsSync, unlinkSync } from 'fs';
+import { join } from 'path';
 
 @Provide()
 export class UserService {
@@ -51,5 +53,16 @@ export class UserService {
 
   async deleteUser(id: number) {
     return this.userRepository.delete(id);
+  }
+  
+  async deleteOldAvatar(id: number) {
+    const baseDir = join(__dirname, '../../public/avatar');
+    const user = await this.getUserById(id);
+    if (user.avatar !== 'base.jpg') {
+      const oldAvatarPath = join(baseDir, user.avatar);
+      if (existsSync(oldAvatarPath)) {
+        unlinkSync(oldAvatarPath);
+      }
+    }
   }
 }
