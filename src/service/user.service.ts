@@ -48,4 +48,8 @@ export class UserService {
   async updateUser(userId: number, data: any) {
     return this.userRepository.update(userId, data);
   }
+
+  async deleteUser(id: number) {
+    return this.userRepository.delete(id);
+  }
 }

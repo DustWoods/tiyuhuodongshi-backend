@@ -165,4 +165,13 @@ export class UserController {
     
     return { success: true, message: '用户信息更新成功' };
   }
+
+  @Get('/logout/:id')
+  async logout(@Param('id') id: number){
+    const result = await this.userService.deleteUser(id);
+    if (result.affected === 0) {
+      return { code: 404, message: '用户不存在' };
+    }
+    return {code: 200, message: '用户已注销并删除'}
+  }
 }
