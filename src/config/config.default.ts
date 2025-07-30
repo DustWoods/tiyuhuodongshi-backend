@@ -1,5 +1,6 @@
 import { MidwayConfig } from '@midwayjs/core';
 import * as entities from '../entity';
+import { join } from 'path'
 
 export default {
   // use for cookie sign key, should change to your own and keep security
@@ -21,5 +22,17 @@ export default {
   },
   jwt: {
     secret: process.env.JWT_SECRET || 'default-secret-key',
+  },
+  staticFile: {
+    dirs: {
+      '/public': {
+        prefix: '/public',
+        dir: join(__dirname, '../../public'),
+      },
+      '/user/avatar': {
+        prefix: '/user/avatar',
+        dir: join(__dirname, '../../public/avatar'),
+      },
+    },
   },
 } as MidwayConfig;

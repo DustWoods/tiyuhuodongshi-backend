@@ -5,6 +5,7 @@ import * as info from '@midwayjs/info';
 import * as swagger from '@midwayjs/swagger';
 import * as orm from '@midwayjs/typeorm';
 import * as acrossDomain from '@midwayjs/cross-domain';
+import * as staticFile from '@midwayjs/static-file'
 import { join } from 'path';
 // import { DefaultErrorFilter } from './filter/default.filter';
 // import { NotFoundFilter } from './filter/notfound.filter';
@@ -16,6 +17,7 @@ import { ReportMiddleware } from './middleware/report.middleware';
     swagger,
     orm,
     acrossDomain,
+    staticFile,
     validate,
     {
       component: info,
@@ -31,6 +33,7 @@ export class MainConfiguration {
   async onReady() {
     // add middleware
     this.app.useMiddleware([ReportMiddleware]);
+    this.app.useMiddleware([staticFile.StaticMiddleware]);
     // add filter
     // this.app.useFilter([NotFoundFilter, DefaultErrorFilter]);
   }

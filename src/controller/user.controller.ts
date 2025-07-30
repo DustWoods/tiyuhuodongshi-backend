@@ -1,10 +1,10 @@
-import { Controller, Post, Get, Param, Body, Inject } from '@midwayjs/core';
+import { Controller, Post, Get, Param, Body, Inject, Files } from '@midwayjs/core';
 import { Validate } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 import { UserService } from '../service/user.service';
-import { RegisterDTO, LoginDTO } from '../dto/user.dto';
+import { RegisterDTO, LoginDTO, UpdateUserDTO } from '../dto/user.dto';
 import { compareSync } from 'bcryptjs';
-import { createReadStream, existsSync } from 'fs';
+import { createReadStream, existsSync, unlinkSync, writeFileSync } from 'fs';
 import { join, extname } from 'path';
 
 @Controller('/user')
@@ -108,5 +108,61 @@ export class UserController {
     
     // 返回文件流
     this.ctx.body = createReadStream(filePath);
+  }
+
+  @Post('/modification/:id')
+  @Validate()
+  async updateUser(@Param('id') id: number,@Body() body: UpdateUserDTO, @Files() files) {
+    const userId = id; 
+    if(body.username){
+      const user = await this.userService.getUserByUsername(body.username);
+      if(user){
+        return {success: false, message: '用户名重复'};
+      }
+    }
+    const updateData: any = {
+      username: body.username,
+      password: body.password // 注意：实际项目中需要加密存储
+    };
+
+    // 加密密码
+    if(body.password){
+      const hashedPassword = await this.userService.hashPassword(body.password);
+      updateData.password = hashedPassword;
+    }
+    // 处理头像上传
+    if (body.avatarUrl) {
+      const uploadDir = join(__dirname, '../../public/avatar');
+      const base64Data = body.avatarUrl.replace(/^data:image\/\w+;base64,/, '');
+      const binaryData = Buffer.from(base64Data, 'base64');
+
+      // 生成唯一文件名
+      const ext = base64Data.match(/data:image\/(\w+);base64/)?.[1] || 'jpg';
+      const fileName = `${userId}_${Date.now()}.${ext}`;
+      const savePath = join(uploadDir, fileName);
+
+      // 保存文件
+      writeFileSync(savePath, binaryData);
+
+      // 删除旧头像（如果有）
+      const user = await this.userService.getUserById(userId);
+      if (user.avatar !== 'base.jpg') {
+        const oldAvatarPath = join(uploadDir, user.avatar);
+        if (existsSync(oldAvatarPath)) {
+          unlinkSync(oldAvatarPath);
+        }
+      }
+      // 更新头像URL（存储文件名而非完整路径）
+      updateData.avatar = fileName;
+    }
+    // 检查是否有需要更新的数据
+    if (Object.keys(updateData).length === 0) {
+      return { success: false, message: '没有需要更新的数据' };
+    }
+
+    // 更新数据库
+    await this.userService.updateUser(userId, updateData);
+    
+    return { success: true, message: '用户信息更新成功' };
   }
 }

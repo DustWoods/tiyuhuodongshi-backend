@@ -44,4 +44,8 @@ export class UserService {
       { expiresIn: '24h' }
     );
   }
+
+  async updateUser(userId: number, data: any) {
+    return this.userRepository.update(userId, data);
+  }
 }
