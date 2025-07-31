@@ -23,36 +23,36 @@ export class ActivityService {
 
   async deleteExpiredActivities(date: string): Promise<number> {
     // 1. 先查询所有过期的活动
-  const expiredActivities = await this.activityRepository
-    .createQueryBuilder('activity')
-    .select('id')
-    .where('date < :date', { date })
-    .getMany();
+    const expiredActivities = await this.activityRepository
+      .createQueryBuilder('activity')
+      .select('id')
+      .where('date < :date', { date })
+      .getMany();
 
-  if (expiredActivities.length === 0) {
-    return 0;
-  }
+    if (expiredActivities.length === 0) {
+      return 0;
+    }
 
-  // 2. 提取过期活动的id列表
-  const expiredActivityIds = expiredActivities.map(activity => activity.id);
+    // 2. 提取过期活动的id列表
+    const expiredActivityIds = expiredActivities.map(activity => activity.id);
 
-  // 3. 删除这些活动对应的报名记录
-  await this.registrationRepository
-    .createQueryBuilder()
-    .delete()
-    .from(Registration)
-    .where('activityId IN (:...ids)', { ids: expiredActivityIds })
-    .execute();
+    // 3. 删除这些活动对应的报名记录
+    await this.registrationRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Registration)
+      .where('activityId IN (:...ids)', { ids: expiredActivityIds })
+      .execute();
 
-  // 4. 删除过期的活动本身
-  const result = await this.activityRepository
-    .createQueryBuilder()
-    .delete()
-    .from(Activity)
-    .where('date < :date', { date })
-    .execute();
+    // 4. 删除过期的活动本身
+    const result = await this.activityRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Activity)
+      .where('date < :date', { date })
+      .execute();
 
-  return result.affected || 0;
+    return result.affected || 0;
   }
 
   async findAllActivitiesSorted(hostId: number): Promise<Activity[]> {
@@ -116,5 +116,13 @@ export class ActivityService {
       .where('activity.id IN (:...activityIds)', { activityIds })
       .orderBy('activity.date', 'ASC')
       .getMany();
+  }
+  
+  async findActivityById(id: number): Promise<Activity>{
+    return this.activityRepository.findOne({where: { id }});
+  }
+
+  async deleteActivityById(id: number) {
+    return await this.activityRepository.delete(id);
   }
 }

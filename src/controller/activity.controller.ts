@@ -57,9 +57,26 @@ export class UserController {
   @Validate()
   async relationship(@Body() relationshipDTO: relationshipDTO){
     const relationship = await this.activityService.findRelationship(relationshipDTO.userId, relationshipDTO.activityId);
-    return {
+    if(relationship){
+      return {
         code: 200,
-        relationship: !!relationship,
+          state: '取消报名',
+      }
+    }
+    else{
+      const activity = await this.activityService.findActivityById(relationshipDTO.activityId);
+      if(relationshipDTO.userId === activity.hostId){
+        return {
+          code: 200,
+          state: '取消活动',
+        }
+      }
+      else{
+        return {
+          code: 200,
+          state: '立即报名',
+        }
+      }
     }
   }
 
@@ -152,5 +169,27 @@ export class UserController {
         error: error.message
       };
     }
+  }
+
+  @Get('/:id')
+  async activity(@Param('id') id: number){
+    const result = await this.activityService.deleteActivityById(id);
+
+      if (result.affected === 0) {
+        this.ctx.status = 404;
+        return {
+          success: false,
+          message: '活动不存在或已被删除'
+        }
+      }
+
+      this.ctx.status = 200;
+      return {
+        success: true,
+        message: '活动删除成功',
+        data: {
+          id
+        }
+      }
   }
 }
