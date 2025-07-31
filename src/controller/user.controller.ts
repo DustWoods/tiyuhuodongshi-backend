@@ -162,7 +162,6 @@ export class UserController {
 
   @Get('/logout/:id')
   async logout(@Param('id') id: number){
-    await this.userService.deleteOldAvatar(id);
     const result = await this.userService.deleteUser(id);
     if (result.affected === 0) {
       return { code: 404, message: '用户不存在' };

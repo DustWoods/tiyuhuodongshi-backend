@@ -1,6 +1,8 @@
 import { Provide, Inject } from '@midwayjs/core';
 import { Repository } from 'typeorm';
 import { User } from '../entity/user.entity';
+import { Activity } from '../entity/activity.entity';
+import { Registration } from '../entity/registration.entity';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { hashSync, genSaltSync } from 'bcryptjs';
 import { sign } from 'jsonwebtoken';
@@ -12,6 +14,12 @@ import { join } from 'path';
 export class UserService {
   @InjectEntityModel(User)
   userRepository: Repository<User>;
+
+  @InjectEntityModel(Activity)
+  activityRepository: Repository<Activity>
+
+  @InjectEntityModel(Registration)
+  registrationRepository: Repository<Registration>
 
   @Inject()
   ctx: Context;
@@ -52,6 +60,9 @@ export class UserService {
   }
 
   async deleteUser(id: number) {
+    this.deleteOldAvatar(id);
+    this.activityRepository.delete({hostId: id});
+    this.registrationRepository.delete({userId: id});
     return this.userRepository.delete(id);
   }
   
