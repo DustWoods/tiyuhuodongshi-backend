@@ -22,14 +22,37 @@ export class ActivityService {
   }
 
   async deleteExpiredActivities(date: string): Promise<number> {
-    const result = await this.activityRepository
-      .createQueryBuilder()
-      .delete()
-      .from(Activity)
-      .where('date < :date', { date })
-      .execute();
-    
-    return result.affected || 0;
+    // 1. 先查询所有过期的活动
+  const expiredActivities = await this.activityRepository
+    .createQueryBuilder('activity')
+    .select('id')
+    .where('date < :date', { date })
+    .getMany();
+
+  if (expiredActivities.length === 0) {
+    return 0;
+  }
+
+  // 2. 提取过期活动的id列表
+  const expiredActivityIds = expiredActivities.map(activity => activity.id);
+
+  // 3. 删除这些活动对应的报名记录
+  await this.registrationRepository
+    .createQueryBuilder()
+    .delete()
+    .from(Registration)
+    .where('activityId IN (:...ids)', { ids: expiredActivityIds })
+    .execute();
+
+  // 4. 删除过期的活动本身
+  const result = await this.activityRepository
+    .createQueryBuilder()
+    .delete()
+    .from(Activity)
+    .where('date < :date', { date })
+    .execute();
+
+  return result.affected || 0;
   }
 
   async findAllActivitiesSorted(hostId: number): Promise<Activity[]> {
@@ -51,7 +74,7 @@ export class ActivityService {
     return this.registrationRepository.findOne({where: {userId: userId, activityId: activityId}})
   }
 
-  async deleteRegistration(id: number){
+  async deleteRegistrationById(id: number){
     return this.registrationRepository.delete(id);
   }
 
@@ -62,5 +85,36 @@ export class ActivityService {
     }
     const user = this.registrationRepository.create(newData);
     return this.registrationRepository.save(user);
+  }
+
+  async findAllRegisterActivities(id: number): Promise<Activity[]>{
+    return await this.activityRepository
+      .createQueryBuilder('activity')
+      .where('activity.hostId = :id', { id })
+      .orderBy('activity.date', 'ASC')
+      .getMany();
+  }
+
+  async findAllParticipateActivities(id: number): Promise<Activity[]>{
+    // 1. 根据userId查询所有相关的报名记录，获取对应的activityId
+    const registrations = await this.registrationRepository
+      .createQueryBuilder('registration')
+      .select('registration.activityId')
+      .where('registration.userId = :id', { id })
+      .getMany();
+
+    if (registrations.length === 0) {
+      return [];
+    }
+
+    // 2. 提取所有活动ID
+    const activityIds = registrations.map(reg => reg.activityId);
+
+    // 3. 根据活动ID查询对应的活动，并按时间升序排序
+    return this.activityRepository
+      .createQueryBuilder('activity')
+      .where('activity.id IN (:...activityIds)', { activityIds })
+      .orderBy('activity.date', 'ASC')
+      .getMany();
   }
 }

@@ -54,6 +54,7 @@ export class UserController {
   }
 
   @Post('/relationship')
+  @Validate()
   async relationship(@Body() relationshipDTO: relationshipDTO){
     const relationship = await this.activityService.findRelationship(relationshipDTO.userId, relationshipDTO.activityId);
     return {
@@ -74,10 +75,11 @@ export class UserController {
   }
 
   @Post('/participation')
+  @Validate()
   async participation(@Body() participationDTO: participationDTO){
     const registration = await this.activityService.findRelationship(participationDTO.userId, participationDTO.activityId);
     if(registration){
-        await this.activityService.deleteRegistration(registration.id);
+        await this.activityService.deleteRegistrationById(registration.id);
         return {
             code: 200,
             message: '成功取消报名',
@@ -89,6 +91,66 @@ export class UserController {
             code: 200,
             message: '成功报名',
         }
+    }
+  }
+
+  @Get('/register/:id')
+  async myRegisterActivities(@Param('id') id: number){
+    try {
+      // 获取当前时间，格式化为与数据库相同的格式 (YYYY-MM-DDTHH:mm)
+      const now = new Date();
+      const currentTime = now.toISOString().slice(0, 16); // 截取到分钟
+
+      // 1. 删除所有早于当前时间的活动
+      const deletedCount = await this.activityService.deleteExpiredActivities(currentTime);
+
+      const activities = await this.activityService.findAllRegisterActivities(id);
+
+      return {
+        success: true,
+        message: '活动清理完成并返回有效活动',
+        data: {
+          deletedCount,
+          activities,
+        }
+      };
+    } catch (error) {
+      this.ctx.logger.error('处理活动时发生错误:', error);
+      return {
+        success: false,
+        message: '处理活动失败',
+        error: error.message
+      };
+    }
+  }
+
+  @Get('/participate/:id')
+  async myParticipateActivities(@Param('id') id: number){
+    try {
+      // 获取当前时间，格式化为与数据库相同的格式 (YYYY-MM-DDTHH:mm)
+      const now = new Date();
+      const currentTime = now.toISOString().slice(0, 16); // 截取到分钟
+
+      // 1. 删除所有早于当前时间的活动
+      const deletedCount = await this.activityService.deleteExpiredActivities(currentTime);
+
+      const activities = await this.activityService.findAllParticipateActivities(id);
+
+      return {
+        success: true,
+        message: '活动清理完成并返回有效活动',
+        data: {
+          deletedCount,
+          activities,
+        }
+      };
+    } catch (error) {
+      this.ctx.logger.error('处理活动时发生错误:', error);
+      return {
+        success: false,
+        message: '处理活动失败',
+        error: error.message
+      };
     }
   }
 }
