@@ -22,6 +22,11 @@ export class User {
   })
   password: string;
 
-  @Column({ nullable: true })
+  @Column({ 
+    type: 'varchar',
+    length: 50,
+    nullable: false,
+    comment: '头像文件',
+  })
   avatar: string; // 头像字段
 }    
