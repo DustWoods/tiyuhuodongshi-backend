@@ -19,3 +19,19 @@ export class registerDTO{
   @Rule(RuleType.string().required())
   description: string
 }
+
+export class relationshipDTO{
+  @Rule(RuleType.number().required())
+  userId: number
+
+  @Rule(RuleType.number().required())
+  activityId: number
+}
+
+export class participationDTO{
+  @Rule(RuleType.number().required())
+  userId: number
+
+  @Rule(RuleType.number().required())
+  activityId: number
+}
