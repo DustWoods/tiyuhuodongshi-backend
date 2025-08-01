@@ -1,8 +1,8 @@
-import { Controller, Inject, Post, Get, Body, Param } from '@midwayjs/core';
+import { Controller, Inject, Post, Get, Del, Body, Param } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { ActivityService } from '../service/activity.service';
 import { Validate } from '@midwayjs/validate';
-import { participationDTO, registerDTO, relationshipDTO } from '../dto/activity.dto'
+import { ActivityDTO, RegistrationDTO } from '../dto/activity.dto'
 
 @Controller('/activity')
 export class UserController {
@@ -12,10 +12,10 @@ export class UserController {
   @Inject()
   activityService: ActivityService;
 
-  @Post('/register')
+  @Post('/')
   @Validate()
-  async register(@Body() registerDTO: registerDTO){
-    await this.activityService.createActivity(registerDTO);
+  async register(@Body() activityDTO: ActivityDTO){
+    await this.activityService.createActivity(activityDTO);
     return {
       code: 200,
       message: '创建活动成功',
@@ -23,7 +23,7 @@ export class UserController {
   }
 
   @Get('/all/:hostId')
-  async getValidActivities(@Param('hostId') hostId: number) {
+  async getAllActivities(@Param('hostId') hostId: number) {
     try {
       // 获取当前时间，格式化为与数据库相同的格式 (YYYY-MM-DDTHH:mm)
       const now = new Date();
@@ -53,10 +53,10 @@ export class UserController {
     }
   }
 
-  @Post('/relationship')
+  @Get('/relationship/:userId/:activityId')
   @Validate()
-  async relationship(@Body() relationshipDTO: relationshipDTO){
-    const relationship = await this.activityService.findRelationship(relationshipDTO.userId, relationshipDTO.activityId);
+  async relationship(@Param('userId') userId: number, @Param('activityId') activityId: number){
+    const relationship = await this.activityService.findRelationship(userId, activityId);
     if(relationship){
       return {
         code: 200,
@@ -64,8 +64,8 @@ export class UserController {
       }
     }
     else{
-      const activity = await this.activityService.findActivityById(relationshipDTO.activityId);
-      if(relationshipDTO.userId === activity.hostId){
+      const activity = await this.activityService.findActivityById(activityId);
+      if(userId === activity.hostId){
         return {
           code: 200,
           state: '取消活动',
@@ -93,8 +93,8 @@ export class UserController {
 
   @Post('/participation')
   @Validate()
-  async participation(@Body() participationDTO: participationDTO){
-    const registration = await this.activityService.findRelationship(participationDTO.userId, participationDTO.activityId);
+  async participation(@Body() registrationDTO: RegistrationDTO){
+    const registration = await this.activityService.findRelationship(registrationDTO.userId, registrationDTO.activityId);
     if(registration){
         await this.activityService.deleteRegistrationById(registration.id);
         return {
@@ -103,7 +103,7 @@ export class UserController {
         }
     }
     else{
-        await this.activityService.createRegistration(participationDTO.userId, participationDTO.activityId);
+        await this.activityService.createRegistration(registrationDTO.userId, registrationDTO.activityId);
         return {
             code: 200,
             message: '成功报名',
@@ -171,7 +171,7 @@ export class UserController {
     }
   }
 
-  @Get('/:id')
+  @Del('/:id')
   async activity(@Param('id') id: number){
     const result = await this.activityService.deleteActivityById(id);
 

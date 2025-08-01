@@ -1,6 +1,6 @@
 import { Rule, RuleType } from '@midwayjs/validate';
 
-export class registerDTO{
+export class ActivityDTO{
   @Rule(RuleType.number().required().min(1).error(new Error('非法用户')))
   hostId: number
 
@@ -20,15 +20,7 @@ export class registerDTO{
   description: string
 }
 
-export class relationshipDTO{
-  @Rule(RuleType.number().required())
-  userId: number
-
-  @Rule(RuleType.number().required())
-  activityId: number
-}
-
-export class participationDTO{
+export class RegistrationDTO{
   @Rule(RuleType.number().required())
   userId: number
 

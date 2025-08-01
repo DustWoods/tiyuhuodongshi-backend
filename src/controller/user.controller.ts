@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, Body, Inject, Files } from '@midwayjs/core';
+import { Controller, Post, Get, Put, Del, Param, Body, Inject } from '@midwayjs/core';
 import { Validate } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 import { UserService } from '../service/user.service';
@@ -110,9 +110,9 @@ export class UserController {
     this.ctx.body = createReadStream(filePath);
   }
 
-  @Post('/modification/:id')
+  @Put('/:id')
   @Validate()
-  async updateUser(@Param('id') id: number,@Body() body: UpdateUserDTO, @Files() files) {
+  async updateUser(@Param('id') id: number,@Body() body: UpdateUserDTO) {
     const userId = id; 
     if(body.username){
       const user = await this.userService.getUserByUsername(body.username);
@@ -160,7 +160,7 @@ export class UserController {
     return { success: true, message: '用户信息更新成功' };
   }
 
-  @Get('/logout/:id')
+  @Del('/:id')
   async logout(@Param('id') id: number){
     const result = await this.userService.deleteUser(id);
     if (result.affected === 0) {
