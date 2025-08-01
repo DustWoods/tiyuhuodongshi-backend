@@ -1,7 +1,7 @@
 import { Controller, Inject, Body, Post } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { CommentService } from '../service/comment.service';
-import { CommentDTO } from '../dto/comment.dto'
+import { CommentDTO, ReplyDTO } from '../dto/comment.dto'
 
 @Controller('/comment')
 export class UserController {
@@ -19,6 +19,18 @@ export class UserController {
       message: '创建评论成功',
       data: {
         id: comment.id,
+      }
+    }
+  }
+
+  @Post('/reply')
+  async addReply(@Body() replyDTO: ReplyDTO){
+    const reply = await this.commentService.createReply(replyDTO);
+    return {
+      code: 200,
+      message: '创建回复成功',
+      data: {
+        id: reply.id,
       }
     }
   }

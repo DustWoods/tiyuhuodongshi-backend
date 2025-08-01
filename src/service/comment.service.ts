@@ -24,4 +24,9 @@ export class CommentService {
     const comment = this.commentRepository.create(commentData);
     return this.commentRepository.save(comment);
   }
+
+  async createReply(replyData: {commentId: number, username: string, time: string, content: string}): Promise<Reply>{
+    const reply = this.replyRepository.create(replyData);
+    return this.replyRepository.save(reply);
+  }
 }
