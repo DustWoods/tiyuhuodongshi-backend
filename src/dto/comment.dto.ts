@@ -17,14 +17,6 @@ export class CommentDTO{
     content: string;
 }
 
-export class LikesDTO{
-    @Rule(RuleType.number().required())
-    commentId: number;
-
-    @Rule(RuleType.number().required())
-    userId: number;
-}
-
 export class ReplyDTO{
     @Rule(RuleType.number().required())
     commentId: number;

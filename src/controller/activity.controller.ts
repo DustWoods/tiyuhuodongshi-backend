@@ -1,4 +1,4 @@
-import { Controller, Inject, Post, Get, Del, Body, Param } from '@midwayjs/core';
+import { Controller, Inject, Post, Get, Put, Del, Body, Param } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { ActivityService } from '../service/activity.service';
 import { Validate } from '@midwayjs/validate';
@@ -54,7 +54,6 @@ export class UserController {
   }
 
   @Get('/relationship/:userId/:activityId')
-  @Validate()
   async relationship(@Param('userId') userId: number, @Param('activityId') activityId: number){
     const relationship = await this.activityService.findRelationship(userId, activityId);
     if(relationship){
@@ -91,7 +90,7 @@ export class UserController {
     }
   }
 
-  @Post('/participation')
+  @Put('/participation')
   @Validate()
   async participation(@Body() registrationDTO: RegistrationDTO){
     const registration = await this.activityService.findRelationship(registrationDTO.userId, registrationDTO.activityId);
