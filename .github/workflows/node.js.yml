@@ -2,6 +2,8 @@ name: Node.js CI
 on: # 触发⼯作流的事件  
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 jobs: # 定义⼯作流中的任务（⼀个⼯作流可包含多个任务）  
   build:
     runs-on: ubuntu-latest # 指定运⾏环境    
@@ -16,5 +18,5 @@ jobs: # 定义⼯作流中的任务（⼀个⼯作流可包含多个任务）
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
-    - run: npm run test
     - run: npm run build --if-present
+    - run: npm run test
