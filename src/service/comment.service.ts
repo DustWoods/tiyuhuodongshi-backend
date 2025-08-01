@@ -4,7 +4,7 @@ import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Comment } from '../entity/comment.entity';
 import { Reply } from '../entity/reply.entity';
 import { Likes } from '../entity/likes.entity';
-import { Repository, DeleteResult } from 'typeorm';
+import { Repository, DeleteResult, In } from 'typeorm';
 
 @Provide()
 export class CommentService {
@@ -81,5 +81,59 @@ export class CommentService {
       console.error('获取评论及回复失败:', error);
       throw new Error(`获取评论及回复失败: ${error.message}`);
     }
+  }
+
+  async deleteAllCommentsByActivityId(activityId: number): Promise<{
+    commentsDeleted: number;
+    repliesDeleted: number;
+    likesDeleted: number;
+  }> {
+    try {
+      // 1. 查询该活动下的所有评论
+      const comments = await this.commentRepository.find({
+        where: { activityId: activityId }
+      });
+
+      if (comments.length === 0) {
+        return {
+          commentsDeleted: 0,
+          repliesDeleted: 0,
+          likesDeleted: 0
+        };
+      }
+
+      // 提取所有评论ID
+      const commentIds = comments.map(comment => comment.id);
+
+      // 2. 删除这些评论的所有点赞
+      const { affected: likesDeleted } = await this.likesRepository.delete({
+        commentId: In(commentIds)
+      });
+
+      // 3. 删除这些评论的所有回复
+      const { affected: repliesDeleted } = await this.replyRepository.delete({
+        commentId: In(commentIds)
+      });
+
+      // 4. 最后删除所有评论
+      const { affected: commentsDeleted } = await this.commentRepository.delete({
+        activityId
+      });
+
+      return {
+        commentsDeleted: commentsDeleted || 0,
+        repliesDeleted: repliesDeleted || 0,
+        likesDeleted: likesDeleted || 0
+      };
+    } catch (error) {
+      console.error('删除评论及关联数据失败:', error);
+      throw new Error(`删除评论及关联数据失败: ${error.message}`);
+    }
+  }
+
+  async deleteCommentById(id: number): Promise<DeleteResult> {
+    await this.replyRepository.delete({commentId: id});
+    await this.likesRepository.delete({commentId: id});
+    return this.commentRepository.delete(id);
   }
 }

@@ -3,6 +3,7 @@ import { Context } from '@midwayjs/koa';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Activity } from '../entity/activity.entity';
 import { Registration } from '../entity/registration.entity';
+import { CommentService } from '../service/comment.service';
 import { Repository } from 'typeorm';
 
 @Provide()
@@ -15,6 +16,9 @@ export class ActivityService {
 
   @Inject()
   ctx: Context;
+
+  @Inject()
+  commentService: CommentService;
 
   async createActivity(activityData: { hostId: number; project: string; type: string; date: string; location: string; description: string }): Promise<Activity> {
     const user = this.activityRepository.create(activityData);
@@ -123,6 +127,8 @@ export class ActivityService {
   }
 
   async deleteActivityById(id: number) {
+    await this.registrationRepository.delete({activityId: id});
+    await this.commentService.deleteAllCommentsByActivityId(id);
     return await this.activityRepository.delete(id);
   }
 }

@@ -3,12 +3,17 @@ import { Repository } from 'typeorm';
 import { User } from '../entity/user.entity';
 import { Activity } from '../entity/activity.entity';
 import { Registration } from '../entity/registration.entity';
+import { Comment } from '../entity/comment.entity';
+import { Reply } from '../entity/reply.entity';
+import { Likes } from '../entity/likes.entity';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { hashSync, genSaltSync } from 'bcryptjs';
 import { sign } from 'jsonwebtoken';
 import { Context } from '@midwayjs/koa';
 import { existsSync, unlinkSync } from 'fs';
 import { join } from 'path';
+import { ActivityService } from './activity.service';
+import { CommentService } from './comment.service';
 
 @Provide()
 export class UserService {
@@ -20,6 +25,21 @@ export class UserService {
 
   @InjectEntityModel(Registration)
   registrationRepository: Repository<Registration>
+
+  @InjectEntityModel(Comment)
+  commentRepository: Repository<Comment>
+
+  @InjectEntityModel(Reply)
+  replyRepository: Repository<Reply>
+
+  @InjectEntityModel(Likes)
+  likesRepostitory: Repository<Likes>
+
+  @Inject()
+  activityService: ActivityService;
+
+  @Inject()
+  commentService: CommentService;
 
   @Inject()
   ctx: Context;
@@ -61,8 +81,22 @@ export class UserService {
 
   async deleteUser(id: number) {
     this.deleteOldAvatar(id);
-    this.activityRepository.delete({hostId: id});
+    const activities = await this.activityRepository.find({where: { hostId: id }});
+    if(activities.length !== 0){
+      for(const activity of activities){
+        await this.activityService.deleteActivityById(activity.id);
+      }
+    }
+    const comments = await this.commentRepository.find({where: { userId: id}});
+    if(comments.length !== 0){
+      for(const comment of comments){
+        await this.commentService.deleteCommentById(comment.id);
+      }
+    }
     this.registrationRepository.delete({userId: id});
+    this.likesRepostitory.delete({userId: id});
+    const user = await this.userRepository.findOne({where: { id }})
+    this.replyRepository.delete({username: user.username});
     return this.userRepository.delete(id);
   }
   
