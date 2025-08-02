@@ -43,7 +43,9 @@
     "lint": "mwts check",
     "lint:fix": "mwts fix",
     "ci": "npm run cov",
-    "build": "mwtsc --cleanOutDir"
+    "build": "mwtsc --cleanOutDir",
+    "bundle": "bundle && npm run build && ncc build bootstrap.js -o build",
+    "bundle_start": "NODE_ENV=production node ./build/index.js"
   },
   "repository": {
     "type": "git",

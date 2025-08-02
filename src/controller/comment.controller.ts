@@ -5,7 +5,7 @@ import { CommentDTO, ReplyDTO } from '../dto/comment.dto'
 import { Validate } from '@midwayjs/validate'
 
 @Controller('/comment')
-export class UserController {
+export class CommentController {
   @Inject()
   ctx: Context;
 

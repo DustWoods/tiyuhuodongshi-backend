@@ -30,7 +30,7 @@ export class Activity {
     length: 20,
     comment: '活动日期'
   })
-  date: Date;
+  date: string;
 
   @Column({
     type: 'varchar',

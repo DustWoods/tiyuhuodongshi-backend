@@ -5,7 +5,7 @@ import { Validate } from '@midwayjs/validate';
 import { ActivityDTO, RegistrationDTO } from '../dto/activity.dto'
 
 @Controller('/activity')
-export class UserController {
+export class ActivityController {
   @Inject()
   ctx: Context;
 
