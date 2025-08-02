@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Put, Del, Param, Body, Inject } from '@midwayjs/core';
+import {
+  Controller,
+  Post,
+  Get,
+  Put,
+  Del,
+  Param,
+  Body,
+  Inject,
+} from '@midwayjs/core';
 import { Validate } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 import { UserService } from '../service/user.service';
@@ -24,13 +33,17 @@ export class UserController {
     }
 
     // 检查用户名是否已存在
-    const existingUser = await this.userService.getUserByUsername(registerDTO.username);
+    const existingUser = await this.userService.getUserByUsername(
+      registerDTO.username
+    );
     if (existingUser) {
       this.ctx.throw(400, '用户名已存在');
     }
 
     // 加密密码
-    const hashedPassword = await this.userService.hashPassword(registerDTO.password);
+    const hashedPassword = await this.userService.hashPassword(
+      registerDTO.password
+    );
 
     // 创建新用户
     const user = await this.userService.createUser({
@@ -44,7 +57,7 @@ export class UserController {
       message: '注册成功',
       data: {
         id: user.id,
-      }
+      },
     };
   }
 
@@ -53,7 +66,7 @@ export class UserController {
   async login(@Body() loginDTO: LoginDTO) {
     // 获取用户信息
     const user = await this.userService.getUserByUsername(loginDTO.username);
-    
+
     // 验证用户是否存在
     if (!user) {
       this.ctx.throw(401, '用户名或密码错误');
@@ -74,10 +87,10 @@ export class UserController {
       data: {
         id: user.id,
         username: user.username,
-        token
-      }
+        token,
+      },
     };
-  } 
+  }
 
   @Get('/avatar/:id')
   async avatar(@Param('id') id: number) {
@@ -105,28 +118,28 @@ export class UserController {
         this.ctx.type = 'application/octet-stream';
     }
     this.ctx.set('Cache-Control', 'public, max-age=31536000'); // 缓存1年
-    
+
     // 返回文件流
     this.ctx.body = createReadStream(filePath);
   }
 
   @Put('/:id')
   @Validate()
-  async updateUser(@Param('id') id: number,@Body() body: UpdateUserDTO) {
-    const userId = id; 
-    if(body.username){
+  async updateUser(@Param('id') id: number, @Body() body: UpdateUserDTO) {
+    const userId = id;
+    if (body.username) {
       const user = await this.userService.getUserByUsername(body.username);
-      if(user){
-        return {success: false, message: '用户名重复'};
+      if (user) {
+        return { success: false, message: '用户名重复' };
       }
     }
     const updateData: any = {
       username: body.username,
-      password: body.password // 注意：实际项目中需要加密存储
+      password: body.password, // 注意：实际项目中需要加密存储
     };
 
     // 加密密码
-    if(body.password){
+    if (body.password) {
       const hashedPassword = await this.userService.hashPassword(body.password);
       updateData.password = hashedPassword;
     }
@@ -156,12 +169,12 @@ export class UserController {
 
     // 更新数据库
     await this.userService.updateUser(userId, updateData);
-    
+
     return { success: true, message: '用户信息更新成功' };
   }
 
   @Del('/:id')
-  async logout(@Param('id') id: number){
+  async logout(@Param('id') id: number) {
     const result = await this.userService.deleteUser(id);
     if (result.affected === 0) {
       return { code: 404, message: '用户不存在' };
@@ -170,6 +183,6 @@ export class UserController {
       httpOnly: true,
       maxAge: 0,
     });
-    return {code: 200, message: '用户已注销并删除'}
+    return { code: 200, message: '用户已注销并删除' };
   }
 }

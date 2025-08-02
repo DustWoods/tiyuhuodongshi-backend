@@ -1,6 +1,6 @@
 import { MidwayConfig } from '@midwayjs/core';
 import * as entities from '../entity';
-import { join } from 'path'
+import { join } from 'path';
 
 export default {
   // use for cookie sign key, should change to your own and keep security
@@ -16,9 +16,9 @@ export default {
         synchronize: true,
         logging: true,
         // ...
-        entities: [...Object.values(entities)],  
-      }
-    }
+        entities: [...Object.values(entities)],
+      },
+    },
   },
   jwt: {
     secret: process.env.JWT_SECRET || 'default-secret-key',

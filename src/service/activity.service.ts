@@ -20,7 +20,14 @@ export class ActivityService {
   @Inject()
   commentService: CommentService;
 
-  async createActivity(activityData: { hostId: number; project: string; type: string; date: string; location: string; description: string }): Promise<Activity> {
+  async createActivity(activityData: {
+    hostId: number;
+    project: string;
+    type: string;
+    date: string;
+    location: string;
+    description: string;
+  }): Promise<Activity> {
     const user = this.activityRepository.create(activityData);
     return this.activityRepository.save(user);
   }
@@ -66,32 +73,37 @@ export class ActivityService {
       .orderBy('activity.date', 'ASC')
       .getMany();
   }
-  
+
   async registrationCount(id: number): Promise<number> {
     return await this.registrationRepository
-          .createQueryBuilder('registration')
-          .where('registration.activityId = :activityId', { activityId: id })
-          .getCount();
+      .createQueryBuilder('registration')
+      .where('registration.activityId = :activityId', { activityId: id })
+      .getCount();
   }
 
-  async findRelationship(userId: number, activityId: number): Promise<Registration>{
-    return this.registrationRepository.findOne({where: {userId: userId, activityId: activityId}})
+  async findRelationship(
+    userId: number,
+    activityId: number
+  ): Promise<Registration> {
+    return this.registrationRepository.findOne({
+      where: { userId: userId, activityId: activityId },
+    });
   }
 
-  async deleteRegistrationById(id: number){
+  async deleteRegistrationById(id: number) {
     return this.registrationRepository.delete(id);
   }
 
-  async createRegistration(userId: number, activityId: number){
+  async createRegistration(userId: number, activityId: number) {
     const newData = {
-        userId: userId, 
-        activityId: activityId,
-    }
+      userId: userId,
+      activityId: activityId,
+    };
     const user = this.registrationRepository.create(newData);
     return this.registrationRepository.save(user);
   }
 
-  async findAllRegisterActivities(id: number): Promise<Activity[]>{
+  async findAllRegisterActivities(id: number): Promise<Activity[]> {
     return await this.activityRepository
       .createQueryBuilder('activity')
       .where('activity.hostId = :id', { id })
@@ -99,7 +111,7 @@ export class ActivityService {
       .getMany();
   }
 
-  async findAllParticipateActivities(id: number): Promise<Activity[]>{
+  async findAllParticipateActivities(id: number): Promise<Activity[]> {
     // 1. 根据userId查询所有相关的报名记录，获取对应的activityId
     const registrations = await this.registrationRepository
       .createQueryBuilder('registration')
@@ -121,13 +133,13 @@ export class ActivityService {
       .orderBy('activity.date', 'ASC')
       .getMany();
   }
-  
-  async findActivityById(id: number): Promise<Activity>{
-    return this.activityRepository.findOne({where: { id }});
+
+  async findActivityById(id: number): Promise<Activity> {
+    return this.activityRepository.findOne({ where: { id } });
   }
 
   async deleteActivityById(id: number) {
-    await this.registrationRepository.delete({activityId: id});
+    await this.registrationRepository.delete({ activityId: id });
     await this.commentService.deleteAllCommentsByActivityId(id);
     return await this.activityRepository.delete(id);
   }

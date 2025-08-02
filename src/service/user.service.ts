@@ -22,19 +22,19 @@ export class UserService {
   userRepository: Repository<User>;
 
   @InjectEntityModel(Activity)
-  activityRepository: Repository<Activity>
+  activityRepository: Repository<Activity>;
 
   @InjectEntityModel(Registration)
-  registrationRepository: Repository<Registration>
+  registrationRepository: Repository<Registration>;
 
   @InjectEntityModel(Comment)
-  commentRepository: Repository<Comment>
+  commentRepository: Repository<Comment>;
 
   @InjectEntityModel(Reply)
-  replyRepository: Repository<Reply>
+  replyRepository: Repository<Reply>;
 
   @InjectEntityModel(Likes)
-  likesRepostitory: Repository<Likes>
+  likesRepostitory: Repository<Likes>;
 
   @Inject()
   activityService: ActivityService;
@@ -60,7 +60,11 @@ export class UserService {
     return this.userRepository.findOne({ where: { id } });
   }
 
-  async createUser(userData: { username: string; password: string; avatar: string }): Promise<User> {
+  async createUser(userData: {
+    username: string;
+    password: string;
+    avatar: string;
+  }): Promise<User> {
     const user = this.userRepository.create(userData);
     return this.userRepository.save(user);
   }
@@ -89,25 +93,29 @@ export class UserService {
 
   async deleteUser(id: number) {
     this.deleteOldAvatar(id);
-    const activities = await this.activityRepository.find({where: { hostId: id }});
-    if(activities.length !== 0){
-      for(const activity of activities){
+    const activities = await this.activityRepository.find({
+      where: { hostId: id },
+    });
+    if (activities.length !== 0) {
+      for (const activity of activities) {
         await this.activityService.deleteActivityById(activity.id);
       }
     }
-    const comments = await this.commentRepository.find({where: { userId: id}});
-    if(comments.length !== 0){
-      for(const comment of comments){
+    const comments = await this.commentRepository.find({
+      where: { userId: id },
+    });
+    if (comments.length !== 0) {
+      for (const comment of comments) {
         await this.commentService.deleteCommentById(comment.id);
       }
     }
-    this.registrationRepository.delete({userId: id});
-    this.likesRepostitory.delete({userId: id});
-    const user = await this.userRepository.findOne({where: { id }})
-    this.replyRepository.delete({username: user.username});
+    this.registrationRepository.delete({ userId: id });
+    this.likesRepostitory.delete({ userId: id });
+    const user = await this.userRepository.findOne({ where: { id } });
+    this.replyRepository.delete({ username: user.username });
     return this.userRepository.delete(id);
   }
-  
+
   async deleteOldAvatar(id: number) {
     const baseDir = join(__dirname, '../../public/avatar');
     const user = await this.getUserById(id);
