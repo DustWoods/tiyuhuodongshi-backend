@@ -1,4 +1,5 @@
 import { Provide, Inject } from '@midwayjs/core';
+import { IUserOptions } from '../interface';
 import { Repository } from 'typeorm';
 import { User } from '../entity/user.entity';
 import { Activity } from '../entity/activity.entity';
@@ -43,7 +44,14 @@ export class UserService {
 
   @Inject()
   ctx: Context;
-
+  async getUser(options: IUserOptions) {
+    return {
+      uid: options.uid,
+      username: 'mockedName',
+      phone: '12345678901',
+      email: 'xxx.xxx@xxx.com',
+    };
+  }
   async getUserByUsername(username: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { username } });
   }
