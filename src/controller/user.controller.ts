@@ -13,7 +13,7 @@ import { Context } from '@midwayjs/koa';
 import { UserService } from '../service/user.service';
 import { RegisterDTO, LoginDTO, UpdateUserDTO } from '../dto/user.dto';
 import { compareSync } from 'bcryptjs';
-import { createReadStream, existsSync, writeFileSync } from 'fs';
+import { createReadStream, existsSync, writeFileSync, mkdirSync } from 'fs';
 import { join, extname } from 'path';
 
 @Controller('/user')
@@ -95,7 +95,7 @@ export class UserController {
   @Get('/avatar/:id')
   async avatar(@Param('id') id: number) {
     const user = await this.userService.getUserById(id);
-    const filePath = join(__dirname, `../../public/avatar/${user.avatar}`);
+    const filePath = join(process.cwd(), `uploads/avatars/${user.avatar}`);
     // 检查文件是否存在
     if (!existsSync(filePath)) {
       this.ctx.status = 404;
@@ -145,7 +145,10 @@ export class UserController {
     }
     // 处理头像上传
     if (body.avatarUrl) {
-      const uploadDir = join(__dirname, '../../public/avatar');
+      const uploadDir = join(process.cwd(), 'uploads/avatars');
+      if (!existsSync(uploadDir)) {
+        mkdirSync(uploadDir, { recursive: true });
+      }
       const base64Data = body.avatarUrl.replace(/^data:image\/\w+;base64,/, '');
       const binaryData = Buffer.from(base64Data, 'base64');
 

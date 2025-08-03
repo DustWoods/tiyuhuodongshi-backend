@@ -92,7 +92,7 @@ export class UserService {
   }
 
   async deleteUser(id: number) {
-    this.deleteOldAvatar(id);
+    await this.deleteOldAvatar(id);
     const activities = await this.activityRepository.find({
       where: { hostId: id },
     });
@@ -117,7 +117,7 @@ export class UserService {
   }
 
   async deleteOldAvatar(id: number) {
-    const baseDir = join(__dirname, '../../public/avatar');
+    const baseDir = join(process.cwd(),'uploads/avatars');
     const user = await this.getUserById(id);
     if (user.avatar !== 'base.jpg') {
       const oldAvatarPath = join(baseDir, user.avatar);

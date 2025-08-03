@@ -1,6 +1,5 @@
 import { MidwayConfig } from '@midwayjs/core';
 import * as entities from '../entity';
-import { join } from 'path';
 
 export default {
   // use for cookie sign key, should change to your own and keep security
@@ -25,13 +24,13 @@ export default {
   },
   staticFile: {
     dirs: {
-      '/public': {
-        prefix: '/public',
-        dir: join(__dirname, '../../public'),
+      default: {
+        prefix: '/',
+        dir: 'public',
       },
-      '/user/avatar': {
-        prefix: '/user/avatar',
-        dir: join(__dirname, '../../public/avatar'),
+      another: {
+        prefix: '/assets',
+        dir: 'public/assets',
       },
     },
   },

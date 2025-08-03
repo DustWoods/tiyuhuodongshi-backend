@@ -39,7 +39,6 @@ export class MainConfiguration {
   async onReady() {
     // add middleware
     this.app.useMiddleware([ReportMiddleware]);
-    this.app.useMiddleware([staticFile.StaticMiddleware]);
     // add filter
     // this.app.useFilter([NotFoundFilter, DefaultErrorFilter]);
   }
